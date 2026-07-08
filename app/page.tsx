@@ -1,4 +1,8 @@
+import MorningBrief from "@/components/MorningBrief";
 import DashboardPreview from "@/components/DashboardPreview";
+import ConversationPreview from "@/components/ConversationPreview";
+import LeadDetailPreview from "@/components/LeadDetailPreview";
+
 export default function Home() {
   const steps = [
     { icon: "📞", title: "Call", description: "A customer calls your HVAC business." },
@@ -78,7 +82,12 @@ export default function Home() {
         </div>
       </section>
 
+      <MorningBrief />
       <DashboardPreview />
+      <ConversationPreview />
+      <LeadDetailPreview />
+      
+      
       <section id="features" className="max-w-6xl mx-auto px-8 py-20">
         <h3 className="text-3xl font-bold text-center mb-12">
           Everything You Need
