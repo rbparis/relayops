@@ -45,7 +45,11 @@ export default function AppShellPreview() {
         <div className="grid min-h-[760px] lg:grid-cols-[260px_1fr]">
           <aside className="bg-slate-950 p-6 text-white">
             <div className="flex items-center gap-3 text-2xl font-bold">
-              <span>🔥</span>
+              <img
+                src="/embur-logo.png"
+                alt="EMBUR logo"
+                className="h-10 w-10 rounded-lg object-contain"
+              />
               <span>EMBUR</span>
             </div>
 
@@ -107,11 +111,15 @@ export default function AppShellPreview() {
                 {activePage === "Today" && (
                   <TodayOverview onViewLeads={() => openPage("Customers")} />
                 )}
+
                 {activePage === "Customers" && (
                   <CustomersScreen selectLead={setSelectedLead} />
                 )}
+
                 {activePage === "Conversations" && <ConversationsScreen />}
+
                 {activePage === "Business" && <BusinessScreen />}
+
                 {activePage === "Settings" && <SettingsScreen />}
               </>
             )}
@@ -225,6 +233,7 @@ function ConversationsScreen() {
   return (
     <div className="mt-8 rounded-2xl border bg-white p-6">
       <h3 className="text-xl font-bold">Conversations</h3>
+
       <p className="mt-3 text-slate-600">
         Conversations show how EMBUR captures customer details and keeps the
         business moving.
