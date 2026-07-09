@@ -20,7 +20,7 @@ export default function DashboardPreview() {
           See every missed opportunity in one place.
         </h3>
         <p className="mt-4 text-lg text-slate-600">
-          RelayOps gives HVAC owners a simple command center for leads,
+          EMBUR gives HVAC owners a simple command center for leads,
           follow-ups, appointments, and AI activity.
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function DashboardPreview() {
       <div className="rounded-3xl border bg-white shadow-xl overflow-hidden">
         <div className="border-b bg-slate-900 px-8 py-5 text-white flex items-center justify-between">
           <div>
-            <h4 className="font-bold text-lg">RelayOps Dashboard</h4>
+            <h4 className="font-bold text-lg">EMBUR Dashboard</h4>
             <p className="text-sm text-slate-300">Today&apos;s customer activity</p>
           </div>
 
@@ -71,7 +71,7 @@ export default function DashboardPreview() {
             </div>
 
             <div className="rounded-2xl border p-6">
-              <h5 className="font-bold text-lg mb-5">AI Assistant Summary</h5>
+              <h5 className="font-bold text-lg mb-5">🔥EMBUR Summary</h5>
 
               <div className="space-y-4 text-slate-700">
                 <p className="rounded-xl bg-green-50 p-4">

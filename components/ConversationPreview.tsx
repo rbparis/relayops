@@ -7,7 +7,7 @@ export default function ConversationPreview() {
       align: "left",
     },
     {
-      sender: "Atlas",
+      sender: "🔥EMBUR",
       time: "10:02 PM",
       text: "I’m sorry you’re dealing with that. I can help get your information to the office right away. What’s your address?",
       align: "right",
@@ -19,7 +19,7 @@ export default function ConversationPreview() {
       align: "left",
     },
     {
-      sender: "Atlas",
+      sender: "🔥EMBUR",
       time: "10:04 PM",
       text: "Thank you. I’ve captured your request and notified the team. Someone will follow up as soon as possible.",
       align: "right",
@@ -31,10 +31,10 @@ export default function ConversationPreview() {
       <div className="text-center mb-12">
         <p className="text-blue-700 font-semibold">Customer Conversation</p>
         <h3 className="mt-3 text-4xl font-bold">
-          See how RelayOps recovers missed leads.
+          See how EMBER recovers missed leads.
         </h3>
         <p className="mt-4 text-lg text-slate-600">
-          Atlas responds instantly, collects the right details, and alerts the office.
+          EMBUR responds instantly, collects the right details, and alerts the office.
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default function ConversationPreview() {
         </div>
 
         <div className="rounded-3xl border bg-slate-900 p-8 text-white shadow-xl">
-          <p className="text-blue-200 font-semibold">Atlas Summary</p>
+          <p className="text-blue-200 font-semibold">EMBUR Summary</p>
 
           <h4 className="mt-3 text-3xl font-bold">
             This missed call became a qualified lead.

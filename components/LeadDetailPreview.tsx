@@ -1,7 +1,7 @@
 export default function LeadDetailPreview() {
   const timeline = [
     { time: "9:02 AM", event: "Customer called after searching for emergency AC repair." },
-    { time: "9:03 AM", event: "RelayOps sent an instant follow-up text." },
+    { time: "9:03 AM", event: "🔥EMBUR sent an instant follow-up text." },
     { time: "9:05 AM", event: "Customer shared name, phone number, and service issue." },
     { time: "9:10 AM", event: "Office team was notified with lead details." },
     { time: "9:20 AM", event: "Appointment was booked for today." },
@@ -15,7 +15,7 @@ export default function LeadDetailPreview() {
           See exactly what happened with every lead.
         </h3>
         <p className="mt-4 text-lg text-slate-600">
-          RelayOps shows the full customer journey from missed call to booked appointment.
+          EMBUR shows the full customer journey from missed call to booked appointment.
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default function LeadDetailPreview() {
           </div>
 
           <div className="mt-8 rounded-2xl bg-blue-50 p-5">
-            <p className="font-semibold text-blue-900">Atlas Note</p>
+            <p className="font-semibold text-blue-900">🔥EMBUR Note</p>
             <p className="mt-2 text-blue-800">
               This lead was recovered automatically after a missed call and turned into a same-day appointment.
             </p>

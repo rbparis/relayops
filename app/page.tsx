@@ -2,11 +2,12 @@ import MorningBrief from "@/components/MorningBrief";
 import DashboardPreview from "@/components/DashboardPreview";
 import ConversationPreview from "@/components/ConversationPreview";
 import LeadDetailPreview from "@/components/LeadDetailPreview";
+import AppShellPreview from "@/components/app/AppShellPreview";
 
 export default function Home() {
   const steps = [
     { icon: "📞", title: "Call", description: "A customer calls your HVAC business." },
-    { icon: "🤖", title: "AI Replies", description: "RelayOps instantly follows up." },
+    { icon: "🔥", title: "EMBUR Replies", description: "It instantly follows up." },
     { icon: "📋", title: "Lead Saved", description: "Customer information is captured." },
     { icon: "📲", title: "Office Alert", description: "Your team gets notified." },
     { icon: "✅", title: "Appointment", description: "More missed calls become booked jobs." },
@@ -29,8 +30,8 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-3">
-          <span>🔷</span>
-          <span>RelayOps</span>
+          <span>🔥</span>
+          <span>EMBUR</span>
         </h1>
 
         <div className="hidden md:flex items-center gap-8 text-slate-600 font-medium">
@@ -48,11 +49,11 @@ export default function Home() {
         <h2 className="text-5xl font-bold leading-tight">
           Every Missed Call Could Cost Thousands.
           <br />
-          RelayOps Makes Sure It Doesn't.
+          🔥EMBUR Makes Sure It Doesn't.
         </h2>
 
         <p className="mt-8 text-xl text-slate-600 max-w-3xl mx-auto">
-          Never lose another lead because someone missed the phone. RelayOps
+          Never lose another lead because someone missed the phone. EMBUR
           follows up automatically, captures customer information, and keeps
           your schedule full.
         </p>
@@ -63,7 +64,7 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-8 py-16 text-center">
-        <h3 className="text-3xl font-bold mb-12">How RelayOps Works</h3>
+        <h3 className="text-3xl font-bold mb-12">🔥How EMBUR Works🔥</h3>
 
         <div className="grid gap-6 md:grid-cols-9 items-center">
           {steps.map((step, index) => (
@@ -82,6 +83,7 @@ export default function Home() {
         </div>
       </section>
 
+      <AppShellPreview />
       <MorningBrief />
       <DashboardPreview />
       <ConversationPreview />
@@ -90,13 +92,13 @@ export default function Home() {
       
       <section id="features" className="max-w-6xl mx-auto px-8 py-20">
         <h3 className="text-3xl font-bold text-center mb-12">
-          Everything You Need
+          See EMBUR in Action
         </h3>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {[
             "Missed Call Recovery",
-            "AI Follow-Ups",
+            "Instant Follow-Ups",
             "Lead Dashboard",
             "Review Requests",
           ].map((feature) => (
@@ -108,7 +110,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t py-10 text-center text-slate-500">
-        © {new Date().getFullYear()} RelayOps. Built for HVAC companies.
+        © {new Date().getFullYear()} 🔥EMBUR. Built for HVAC companies.
       </footer>
     </main>
   );
