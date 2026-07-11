@@ -20,7 +20,9 @@ const customers = getCustomers();
 const businessMetrics = getBusinessMetrics();
 
 export default function AppShellPreview() {
-  const [activePage, setActivePage] = useState<AppPage>("Today");
+  const [activePage, setActivePage] =
+    useState<AppPage>("Today");
+
   const [selectedCustomer, setSelectedCustomer] =
     useState<Lead | null>(null);
 
@@ -36,6 +38,7 @@ export default function AppShellPreview() {
   function handleCustomerSelect(customer: Lead) {
     setSelectedCustomer(customer);
     setWelcomeOpen(false);
+    setWelcomeStep(0);
   }
 
   function handleCustomerBack() {
@@ -92,9 +95,7 @@ export default function AppShellPreview() {
               <>
                 {activePage === "Today" && (
                   <TodayPage
-                    onViewCustomers={() =>
-                      handlePageChange("Customers")
-                    }
+                    onOpenCustomer={handleCustomerSelect}
                   />
                 )}
 
@@ -110,10 +111,14 @@ export default function AppShellPreview() {
                 )}
 
                 {activePage === "Business" && (
-                  <BusinessPage metrics={businessMetrics} />
+                  <BusinessPage
+                    metrics={businessMetrics}
+                  />
                 )}
 
-                {activePage === "Settings" && <SettingsPage />}
+                {activePage === "Settings" && (
+                  <SettingsPage />
+                )}
               </>
             )}
           </main>

@@ -1,24 +1,40 @@
+import type { Lead } from "@/types";
 import MorningHero from "@/components/morning/MorningHero";
 import MorningMetrics from "@/components/morning/MorningMetrics";
 import OnePriorityCard from "@/components/morning/OnePriorityCard";
 import { getMorningBrief } from "@/services/morningService";
+import { getCustomers } from "@/services/customerService";
+import {
+  getHighestPriorityCustomer,
+  type PriorityCustomer,
+} from "@/services/priorityService";
 
 type TodayPageProps = {
-  onViewCustomers: () => void;
+  onOpenCustomer: (customer: Lead) => void;
 };
 
 export default function TodayPage({
-  onViewCustomers,
+  onOpenCustomer,
 }: TodayPageProps) {
   const brief = getMorningBrief();
+  const customers = getCustomers();
+
+  const priority =
+    getHighestPriorityCustomer(customers);
+
+  function handleOpenPriority(
+    customer: PriorityCustomer
+  ) {
+    onOpenCustomer(customer);
+  }
 
   return (
     <div className="mt-8 space-y-6">
       <MorningHero brief={brief} />
 
       <OnePriorityCard
-        priority={brief.priority}
-        onOpenCustomer={onViewCustomers}
+        priority={priority}
+        onOpenCustomer={handleOpenPriority}
       />
 
       <MorningMetrics metrics={brief.metrics} />
