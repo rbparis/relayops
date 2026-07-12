@@ -1,7 +1,9 @@
 import type { Lead } from "@/types";
 import MorningHero from "@/components/morning/MorningHero";
 import MorningMetrics from "@/components/morning/MorningMetrics";
+import BusinessPulse from "@/components/morning/BusinessPulse";
 import OnePriorityCard from "@/components/morning/OnePriorityCard";
+import TimeLedger from "@/components/morning/TimeLedger";
 import { getMorningBrief } from "@/services/morningService";
 import { getCustomers } from "@/services/customerService";
 import {
@@ -18,9 +20,7 @@ export default function TodayPage({
 }: TodayPageProps) {
   const brief = getMorningBrief();
   const customers = getCustomers();
-
-  const priority =
-    getHighestPriorityCustomer(customers);
+  const priority = getHighestPriorityCustomer(customers);
 
   function handleOpenPriority(
     customer: PriorityCustomer
@@ -36,8 +36,11 @@ export default function TodayPage({
         priority={priority}
         onOpenCustomer={handleOpenPriority}
       />
-
+      <BusinessPulse />
+      
       <MorningMetrics metrics={brief.metrics} />
+
+      <TimeLedger />
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm md:p-8">
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-700">
