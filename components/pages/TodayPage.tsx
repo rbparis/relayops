@@ -1,26 +1,28 @@
 import type { Lead } from "@/types";
+import BusinessPulse from "@/components/morning/BusinessPulse";
 import MorningHero from "@/components/morning/MorningHero";
 import MorningMetrics from "@/components/morning/MorningMetrics";
-import BusinessPulse from "@/components/morning/BusinessPulse";
 import OnePriorityCard from "@/components/morning/OnePriorityCard";
 import TimeLedger from "@/components/morning/TimeLedger";
 import { getMorningBrief } from "@/services/morningService";
-import { findAllCustomers } from "@/repositories/customerRepository";
 import {
   getHighestPriorityCustomer,
   type PriorityCustomer,
 } from "@/services/priorityService";
 
 type TodayPageProps = {
+  customers: Lead[];
   onOpenCustomer: (customer: Lead) => void;
 };
 
 export default function TodayPage({
+  customers,
   onOpenCustomer,
 }: TodayPageProps) {
   const brief = getMorningBrief();
-  const customers = findAllCustomers();
-  const priority = getHighestPriorityCustomer(customers);
+
+  const priority =
+    getHighestPriorityCustomer(customers);
 
   function handleOpenPriority(
     customer: PriorityCustomer
@@ -36,6 +38,7 @@ export default function TodayPage({
         priority={priority}
         onOpenCustomer={handleOpenPriority}
       />
+
       <BusinessPulse />
 
       <MorningMetrics metrics={brief.metrics} />

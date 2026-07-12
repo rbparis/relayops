@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Lead } from "@/types";
 import AppSidebar, {
   type AppPage,
@@ -14,10 +14,16 @@ import ConversationsPage from "@/components/pages/ConversationsPage";
 import BusinessPage from "@/components/pages/BusinessPage";
 import SettingsPage from "@/components/pages/SettingsPage";
 import { getCustomers } from "@/services/customerService";
+import { fetchDatabaseCustomers } from "@/services/customerApi";
 import { getBusinessMetrics } from "@/services/businessService";
 
-const customers = getCustomers();
+const fallbackCustomers = getCustomers();
 const businessMetrics = getBusinessMetrics();
+
+type CustomerDataStatus =
+  | "loading"
+  | "database"
+  | "fallback";
 
 export default function AppShellPreview() {
   const [activePage, setActivePage] =
@@ -26,8 +32,56 @@ export default function AppShellPreview() {
   const [selectedCustomer, setSelectedCustomer] =
     useState<Lead | null>(null);
 
+  const [customers, setCustomers] =
+    useState<Lead[]>(fallbackCustomers);
+
+  const [customerDataStatus, setCustomerDataStatus] =
+    useState<CustomerDataStatus>("loading");
+
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [welcomeStep, setWelcomeStep] = useState(0);
+
+  useEffect(() => {
+    let componentIsActive = true;
+
+    async function loadCustomers() {
+      try {
+        const databaseCustomers =
+          await fetchDatabaseCustomers();
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        if (databaseCustomers.length > 0) {
+          setCustomers(databaseCustomers);
+          setCustomerDataStatus("database");
+          return;
+        }
+
+        setCustomers(fallbackCustomers);
+        setCustomerDataStatus("fallback");
+      } catch (error) {
+        console.error(
+          "Using EMBUR demo customer fallback:",
+          error
+        );
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        setCustomers(fallbackCustomers);
+        setCustomerDataStatus("fallback");
+      }
+    }
+
+    void loadCustomers();
+
+    return () => {
+      componentIsActive = false;
+    };
+  }, []);
 
   function handlePageChange(page: AppPage) {
     setActivePage(page);
@@ -86,6 +140,8 @@ export default function AppShellPreview() {
               onStartMyDay={openWelcomeExperience}
             />
 
+            <DataSourceNotice status={customerDataStatus} />
+
             {selectedCustomer ? (
               <CustomerDetailPage
                 customer={selectedCustomer}
@@ -95,6 +151,7 @@ export default function AppShellPreview() {
               <>
                 {activePage === "Today" && (
                   <TodayPage
+                    customers={customers}
                     onOpenCustomer={handleCustomerSelect}
                   />
                 )}
@@ -125,5 +182,36 @@ export default function AppShellPreview() {
         </div>
       </div>
     </section>
+  );
+}
+
+function DataSourceNotice({
+  status,
+}: {
+  status: CustomerDataStatus;
+}) {
+  if (status === "loading") {
+    return (
+      <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-400">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+        Connecting to EMBUR data...
+      </div>
+    );
+  }
+
+  if (status === "fallback") {
+    return (
+      <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-amber-700">
+        <span className="h-2 w-2 rounded-full bg-amber-500" />
+        Demo fallback data is active.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-green-700">
+      <span className="h-2 w-2 rounded-full bg-green-500" />
+      Connected to the EMBUR database.
+    </div>
   );
 }
