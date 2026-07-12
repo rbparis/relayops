@@ -29,11 +29,6 @@ export async function GET() {
       ],
     });
 
-    /*
-     * The current interface uses numeric demo IDs.
-     * We preserve that shape for now while keeping the real
-     * database IDs private to the server.
-     */
     const customerViewModels = customers.map(
       (customer, index) => ({
         id: index + 1,

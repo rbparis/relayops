@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 import type { Lead } from "@/types";
 import AppSidebar, {
   type AppPage,
@@ -15,6 +18,10 @@ import BusinessPage from "@/components/pages/BusinessPage";
 import SettingsPage from "@/components/pages/SettingsPage";
 import { getCustomers } from "@/services/customerService";
 import { fetchDatabaseCustomers } from "@/services/customerApi";
+import {
+  fetchDatabaseConversations,
+  type ConversationThread,
+} from "@/services/conversationApi";
 import { getBusinessMetrics } from "@/services/businessService";
 
 const fallbackCustomers = getCustomers();
@@ -25,21 +32,58 @@ type CustomerDataStatus =
   | "database"
   | "fallback";
 
+type ConversationDataStatus =
+  | "loading"
+  | "database"
+  | "error";
+
 export default function AppShellPreview() {
   const [activePage, setActivePage] =
     useState<AppPage>("Today");
 
-  const [selectedCustomer, setSelectedCustomer] =
-    useState<Lead | null>(null);
+  const [
+    selectedCustomer,
+    setSelectedCustomer,
+  ] = useState<Lead | null>(null);
 
   const [customers, setCustomers] =
-    useState<Lead[]>(fallbackCustomers);
+    useState<Lead[]>(
+      fallbackCustomers
+    );
 
-  const [customerDataStatus, setCustomerDataStatus] =
-    useState<CustomerDataStatus>("loading");
+  const [
+    customerDataStatus,
+    setCustomerDataStatus,
+  ] =
+    useState<CustomerDataStatus>(
+      "loading"
+    );
 
-  const [welcomeOpen, setWelcomeOpen] = useState(false);
-  const [welcomeStep, setWelcomeStep] = useState(0);
+  const [
+    conversationThreads,
+    setConversationThreads,
+  ] =
+    useState<ConversationThread[]>(
+      []
+    );
+
+  const [
+    conversationDataStatus,
+    setConversationDataStatus,
+  ] =
+    useState<ConversationDataStatus>(
+      "loading"
+    );
+
+  const [
+    welcomeOpen,
+    setWelcomeOpen,
+  ] = useState(false);
+
+  const [
+    welcomeStep,
+    setWelcomeStep,
+  ] = useState(0);
 
   useEffect(() => {
     let componentIsActive = true;
@@ -53,14 +97,27 @@ export default function AppShellPreview() {
           return;
         }
 
-        if (databaseCustomers.length > 0) {
-          setCustomers(databaseCustomers);
-          setCustomerDataStatus("database");
+        if (
+          databaseCustomers.length > 0
+        ) {
+          setCustomers(
+            databaseCustomers
+          );
+
+          setCustomerDataStatus(
+            "database"
+          );
+
           return;
         }
 
-        setCustomers(fallbackCustomers);
-        setCustomerDataStatus("fallback");
+        setCustomers(
+          fallbackCustomers
+        );
+
+        setCustomerDataStatus(
+          "fallback"
+        );
       } catch (error) {
         console.error(
           "Using EMBUR demo customer fallback:",
@@ -71,25 +128,99 @@ export default function AppShellPreview() {
           return;
         }
 
-        setCustomers(fallbackCustomers);
-        setCustomerDataStatus("fallback");
+        setCustomers(
+          fallbackCustomers
+        );
+
+        setCustomerDataStatus(
+          "fallback"
+        );
+      }
+    }
+
+    async function loadInitialConversations() {
+      try {
+        const databaseConversations =
+          await fetchDatabaseConversations();
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        setConversationThreads(
+          databaseConversations
+        );
+
+        setConversationDataStatus(
+          "database"
+        );
+      } catch (error) {
+        console.error(
+          "Could not load EMBUR conversations:",
+          error
+        );
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        setConversationThreads([]);
+
+        setConversationDataStatus(
+          "error"
+        );
       }
     }
 
     void loadCustomers();
+    void loadInitialConversations();
 
     return () => {
       componentIsActive = false;
     };
   }, []);
 
-  function handlePageChange(page: AppPage) {
+  async function retryConversations() {
+    setConversationDataStatus(
+      "loading"
+    );
+
+    try {
+      const databaseConversations =
+        await fetchDatabaseConversations();
+
+      setConversationThreads(
+        databaseConversations
+      );
+
+      setConversationDataStatus(
+        "database"
+      );
+    } catch (error) {
+      console.error(
+        "Could not reload EMBUR conversations:",
+        error
+      );
+
+      setConversationThreads([]);
+
+      setConversationDataStatus(
+        "error"
+      );
+    }
+  }
+
+  function handlePageChange(
+    page: AppPage
+  ) {
     setActivePage(page);
     setSelectedCustomer(null);
     closeWelcomeExperience();
   }
 
-  function handleCustomerSelect(customer: Lead) {
+  function handleCustomerSelect(
+    customer: Lead
+  ) {
     setSelectedCustomer(customer);
     setWelcomeOpen(false);
     setWelcomeStep(0);
@@ -117,63 +248,110 @@ export default function AppShellPreview() {
         {welcomeOpen && (
           <WelcomeOverlay
             step={welcomeStep}
-            onStart={() => setWelcomeStep(1)}
+            onStart={() =>
+              setWelcomeStep(1)
+            }
             onNext={() =>
-              setWelcomeStep((currentStep) =>
-                Math.min(currentStep + 1, 3)
+              setWelcomeStep(
+                (currentStep) =>
+                  Math.min(
+                    currentStep + 1,
+                    3
+                  )
               )
             }
-            onClose={closeWelcomeExperience}
+            onClose={
+              closeWelcomeExperience
+            }
           />
         )}
 
         <div className="grid min-h-[780px] lg:grid-cols-[260px_minmax(0,1fr)]">
           <AppSidebar
             activePage={activePage}
-            onPageChange={handlePageChange}
+            onPageChange={
+              handlePageChange
+            }
           />
 
           <main className="min-w-0 bg-slate-50 p-5 md:p-8">
             <AppHeader
               activePage={activePage}
-              selectedCustomerName={selectedCustomer?.name}
-              onStartMyDay={openWelcomeExperience}
+              selectedCustomerName={
+                selectedCustomer?.name
+              }
+              onStartMyDay={
+                openWelcomeExperience
+              }
             />
 
-            <DataSourceNotice status={customerDataStatus} />
+            <DataSourceNotice
+              status={
+                customerDataStatus
+              }
+            />
 
             {selectedCustomer ? (
               <CustomerDetailPage
-                customer={selectedCustomer}
-                onBack={handleCustomerBack}
+                customer={
+                  selectedCustomer
+                }
+                onBack={
+                  handleCustomerBack
+                }
               />
             ) : (
               <>
-                {activePage === "Today" && (
+                {activePage ===
+                  "Today" && (
                   <TodayPage
-                    customers={customers}
-                    onOpenCustomer={handleCustomerSelect}
+                    customers={
+                      customers
+                    }
+                    onOpenCustomer={
+                      handleCustomerSelect
+                    }
                   />
                 )}
 
-                {activePage === "Customers" && (
+                {activePage ===
+                  "Customers" && (
                   <CustomersPage
-                    customers={customers}
-                    onCustomerSelect={handleCustomerSelect}
+                    customers={
+                      customers
+                    }
+                    onCustomerSelect={
+                      handleCustomerSelect
+                    }
                   />
                 )}
 
-                {activePage === "Conversations" && (
-                  <ConversationsPage />
+                {activePage ===
+                  "Conversations" && (
+                  <ConversationsPage
+                    threads={
+                      conversationThreads
+                    }
+                    status={
+                      conversationDataStatus
+                    }
+                    onRetry={
+                      retryConversations
+                    }
+                  />
                 )}
 
-                {activePage === "Business" && (
+                {activePage ===
+                  "Business" && (
                   <BusinessPage
-                    metrics={businessMetrics}
+                    metrics={
+                      businessMetrics
+                    }
                   />
                 )}
 
-                {activePage === "Settings" && (
+                {activePage ===
+                  "Settings" && (
                   <SettingsPage />
                 )}
               </>
@@ -194,6 +372,7 @@ function DataSourceNotice({
     return (
       <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-400">
         <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+
         Connecting to EMBUR data...
       </div>
     );
@@ -203,6 +382,7 @@ function DataSourceNotice({
     return (
       <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-amber-700">
         <span className="h-2 w-2 rounded-full bg-amber-500" />
+
         Demo fallback data is active.
       </div>
     );
@@ -211,6 +391,7 @@ function DataSourceNotice({
   return (
     <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-green-700">
       <span className="h-2 w-2 rounded-full bg-green-500" />
+
       Connected to the EMBUR database.
     </div>
   );
