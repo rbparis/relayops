@@ -16,7 +16,7 @@ export default function MorningBrief() {
 
             <div className="mt-10">
               <p className="text-lg text-slate-200">
-                Yesterday, RelayOps recovered
+                Yesterday, 🔥EMBUR recovered
               </p>
 
               <p className="mt-3 text-6xl font-bold text-white">
