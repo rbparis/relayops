@@ -8,45 +8,47 @@ datasource db {
 }
 
 model Business {
-  id            String         @id @default(cuid())
-  name          String
-  phone         String?
-  industry      String?
-  timezone      String         @default("America/New_York")
-  users         User[]
-  customers     Customer[]
-  conversations Conversation[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  clerkOrganizationId String?        @unique
+  name                String
+  phone               String?
+  industry            String?
+  timezone            String         @default("America/New_York")
+  users               User[]
+  customers           Customer[]
+  conversations       Conversation[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 }
 
 model User {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name       String
-  email      String   @unique
-  role       String   @default("owner")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  clerkUserId String?  @unique
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  email       String   @unique
+  role        String   @default("owner")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([businessId])
 }
 
 model Customer {
-  id            String         @id @default(cuid())
-  businessId    String
-  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name          String
-  phone         String?
-  email         String?
-  address       String?
-  service       String?
-  status        String         @default("new")
+  id             String         @id @default(cuid())
+  businessId     String
+  business       Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  service        String?
+  status         String         @default("new")
   estimatedValue Int?
-  conversations Conversation[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  conversations  Conversation[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([businessId])
   @@index([status])
