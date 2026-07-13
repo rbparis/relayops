@@ -1,9 +1,11 @@
 import type { Lead } from "@/types";
+import AtlasBriefCard from "@/components/atlas/AtlasBriefCard";
+import OpportunityBoard from "@/components/atlas/OpportunityBoard";
 import BusinessPulse from "@/components/morning/BusinessPulse";
-import MorningHero from "@/components/morning/MorningHero";
 import MorningMetrics from "@/components/morning/MorningMetrics";
 import OnePriorityCard from "@/components/morning/OnePriorityCard";
 import TimeLedger from "@/components/morning/TimeLedger";
+import { buildAtlasBrief } from "@/services/atlas/atlasEngine";
 import { getMorningBrief } from "@/services/morningService";
 import {
   getHighestPriorityCustomer,
@@ -19,10 +21,16 @@ export default function TodayPage({
   customers,
   onOpenCustomer,
 }: TodayPageProps) {
-  const brief = getMorningBrief();
+  const morningBrief = getMorningBrief();
 
   const priority =
     getHighestPriorityCustomer(customers);
+
+  const atlasBrief = buildAtlasBrief({
+    customers,
+    ownerName: morningBrief.ownerName,
+    timeReturnedMinutes: 138,
+  });
 
   function handleOpenPriority(
     customer: PriorityCustomer
@@ -32,16 +40,26 @@ export default function TodayPage({
 
   return (
     <div className="mt-8 space-y-6">
-      <MorningHero brief={brief} />
+      <AtlasBriefCard
+        brief={atlasBrief}
+        onOpenCustomer={onOpenCustomer}
+      />
 
       <OnePriorityCard
         priority={priority}
         onOpenCustomer={handleOpenPriority}
       />
 
+      <OpportunityBoard
+        customers={customers}
+        onOpenCustomer={onOpenCustomer}
+      />
+
       <BusinessPulse />
 
-      <MorningMetrics metrics={brief.metrics} />
+      <MorningMetrics
+        metrics={morningBrief.metrics}
+      />
 
       <TimeLedger />
 
@@ -55,8 +73,8 @@ export default function TodayPage({
         </h3>
 
         <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-slate-600">
-          EMBUR will continue watching calls, follow-ups,
-          appointments, reviews, and customer activity throughout
+          Atlas will continue watching customers, conversations,
+          follow-ups, appointments, and business activity throughout
           the day.
         </p>
 
