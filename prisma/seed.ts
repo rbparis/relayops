@@ -21,11 +21,51 @@ async function main() {
    * Cascading relations remove its existing demo users,
    * customers, and conversations before rebuilding them.
    */
-  await prisma.business.deleteMany({
-    where: {
-      id: demoBusinessId,
+await prisma.conversation.deleteMany({
+  where: {
+    id: {
+      in: [
+        "conversation-mike-inbound",
+        "conversation-mike-outbound",
+        "conversation-sarah-inbound",
+        "conversation-sarah-outbound",
+        "conversation-john-inbound",
+        "conversation-john-outbound",
+      ],
     },
-  });
+  },
+});
+
+await prisma.customer.deleteMany({
+  where: {
+    id: {
+      in: [
+        "customer-mike-brown",
+        "customer-sarah-johnson",
+        "customer-john-smith",
+      ],
+    },
+  },
+});
+
+await prisma.user.deleteMany({
+  where: {
+    OR: [
+      {
+        id: "user-mike-owner",
+      },
+      {
+        email: "mike@demo.embur.app",
+      },
+    ],
+  },
+});
+
+await prisma.business.deleteMany({
+  where: {
+    id: demoBusinessId,
+  },
+});
 
   await prisma.business.create({
     data: {

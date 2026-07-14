@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { findDemoConversationCustomers } from "@/repositories/conversationRepository";
 import { auth } from "@clerk/nextjs/server";
+import { getOrCreateBusinessForOrganization } from "@/lib/currentBusiness";
+import { findConversationCustomersForBusiness } from "@/repositories/conversationRepository";
 
 function formatMessageTime(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -10,41 +11,85 @@ function formatMessageTime(date: Date) {
 }
 
 export async function GET() {
-  await auth.protect();
+  const {
+    isAuthenticated,
+    orgId,
+  } = await auth();
+
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      {
+        success: false,
+        source: "prisma",
+        threads: [],
+        message: "You must sign in.",
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
+  if (!orgId) {
+    return NextResponse.json(
+      {
+        success: false,
+        source: "prisma",
+        threads: [],
+        message:
+          "Select a company before loading conversations.",
+      },
+      {
+        status: 409,
+      }
+    );
+  }
 
   try {
-    const customers = await findDemoConversationCustomers();
+    const business =
+      await getOrCreateBusinessForOrganization(orgId);
+
+    const customers =
+      await findConversationCustomersForBusiness(
+        business.id
+      );
 
     const threads = customers.map((customer) => {
-      const messages = customer.conversations.map((message) => ({
-        id: message.id,
-
-        direction:
-          message.direction === "inbound"
-            ? ("inbound" as const)
-            : ("outbound" as const),
-
-        body: message.body,
-        status: message.status,
-        channel: message.channel,
-        time: formatMessageTime(message.createdAt),
-        createdAt: message.createdAt.toISOString(),
-      }));
+      const messages = customer.conversations.map(
+        (message) => ({
+          id: message.id,
+          direction:
+            message.direction === "inbound"
+              ? ("inbound" as const)
+              : ("outbound" as const),
+          body: message.body,
+          status: message.status,
+          channel: message.channel,
+          time: formatMessageTime(message.createdAt),
+          createdAt: message.createdAt.toISOString(),
+        })
+      );
 
       const latestMessage = messages.at(-1);
 
       const needsAttention =
-        customer.status.toLowerCase().includes("waiting") ||
+        customer.status
+          .toLowerCase()
+          .includes("waiting") ||
         latestMessage?.direction === "inbound";
 
       return {
         id: customer.id,
         customerName: customer.name,
-        service: customer.service?.trim() || "Service Request",
+        service:
+          customer.service?.trim() ||
+          "Service Request",
         customerStatus: customer.status,
         phone: customer.phone,
-        preview: latestMessage?.body || "No messages yet.",
-        lastActivity: latestMessage?.time || "Recently",
+        preview:
+          latestMessage?.body || "No messages yet.",
+        lastActivity:
+          latestMessage?.time || "Recently",
         needsAttention,
         messages,
       };
@@ -53,11 +98,15 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       source: "prisma",
+      business: {
+        id: business.id,
+        name: business.name,
+      },
       threads,
     });
   } catch (error) {
     console.error(
-      "Failed to load EMBUR conversations from Prisma:",
+      "Failed to load EMBUR conversations:",
       error
     );
 
@@ -66,7 +115,8 @@ export async function GET() {
         success: false,
         source: "prisma",
         threads: [],
-        message: "The conversation database could not be loaded.",
+        message:
+          "The conversation database could not be loaded.",
       },
       {
         status: 500,

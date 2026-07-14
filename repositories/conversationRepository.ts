@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
-const demoBusinessId = "business-embur-demo";
-
-export function findDemoConversationCustomers() {
+export function findConversationCustomersForBusiness(
+  businessId: string
+) {
   return prisma.customer.findMany({
     where: {
-      businessId: demoBusinessId,
+      businessId,
 
       conversations: {
         some: {},
