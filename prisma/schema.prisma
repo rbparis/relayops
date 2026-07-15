@@ -12,6 +12,7 @@ model Business {
   clerkOrganizationId  String?        @unique
   stripeCustomerId     String?        @unique
   stripeSubscriptionId String?        @unique
+  subscriptionPlan     String         @default("none")
   subscriptionStatus   String         @default("inactive")
   currentPeriodEndsAt  DateTime?
   name                 String

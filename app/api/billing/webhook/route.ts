@@ -2,6 +2,10 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import {
+  isBillingPlanId,
+  type BillingPlanId,
+} from "@/lib/billing/plans";
 
 export const runtime = "nodejs";
 
@@ -22,6 +26,14 @@ function getStripeId(
     : value.id;
 }
 
+function getPlanId(
+  value: string | null | undefined
+): BillingPlanId | null {
+  return value && isBillingPlanId(value)
+    ? value
+    : null;
+}
+
 function getCurrentPeriodEndsAt(
   subscription: Stripe.Subscription
 ) {
@@ -39,8 +51,13 @@ async function syncSubscription(
   const businessId =
     subscription.metadata.businessId;
 
-  const stripeCustomerId =
-    getStripeId(subscription.customer);
+  const subscriptionPlan = getPlanId(
+    subscription.metadata.planId
+  );
+
+  const stripeCustomerId = getStripeId(
+    subscription.customer
+  );
 
   const updateData = {
     stripeCustomerId,
@@ -48,6 +65,9 @@ async function syncSubscription(
     subscriptionStatus: subscription.status,
     currentPeriodEndsAt:
       getCurrentPeriodEndsAt(subscription),
+    ...(subscriptionPlan
+      ? { subscriptionPlan }
+      : {}),
   };
 
   if (businessId) {
@@ -129,11 +149,17 @@ export async function POST(request: Request) {
           session.metadata?.businessId ??
           session.client_reference_id;
 
-        const stripeCustomerId =
-          getStripeId(session.customer);
+        const subscriptionPlan = getPlanId(
+          session.metadata?.planId
+        );
 
-        const stripeSubscriptionId =
-          getStripeId(session.subscription);
+        const stripeCustomerId = getStripeId(
+          session.customer
+        );
+
+        const stripeSubscriptionId = getStripeId(
+          session.subscription
+        );
 
         if (businessId) {
           await prisma.business.updateMany({
@@ -147,6 +173,9 @@ export async function POST(request: Request) {
                 session.payment_status === "paid"
                   ? "active"
                   : "processing",
+              ...(subscriptionPlan
+                ? { subscriptionPlan }
+                : {}),
             },
           });
         }
@@ -178,8 +207,9 @@ export async function POST(request: Request) {
         const invoice =
           event.data.object as Stripe.Invoice;
 
-        const stripeCustomerId =
-          getStripeId(invoice.customer);
+        const stripeCustomerId = getStripeId(
+          invoice.customer
+        );
 
         if (stripeCustomerId) {
           await prisma.business.updateMany({
