@@ -1,21 +1,12 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 import EmburIcon from "@/components/ui/EmburIcon";
 import type { ConversationThread } from "@/services/conversationApi";
 
 type ConversationsPageProps = {
   threads: ConversationThread[];
-
-  status:
-    | "loading"
-    | "database"
-    | "error";
-
+  status: "loading" | "database" | "error";
   onRetry: () => void;
 };
 
@@ -24,34 +15,32 @@ export default function ConversationsPage({
   status,
   onRetry,
 }: ConversationsPageProps) {
-  const [
-    selectedThreadId,
-    setSelectedThreadId,
-  ] = useState<string | null>(null);
+  const [selectedThreadId, setSelectedThreadId] =
+    useState<string | null>(null);
 
-  useEffect(() => {
+  const effectiveSelectedThreadId = useMemo(() => {
     if (threads.length === 0) {
-      setSelectedThreadId(null);
-      return;
+      return null;
     }
 
     const selectedStillExists = threads.some(
-      (thread) =>
-        thread.id === selectedThreadId
+      (thread) => thread.id === selectedThreadId
     );
 
-    if (!selectedStillExists) {
-      setSelectedThreadId(threads[0].id);
+    if (selectedStillExists) {
+      return selectedThreadId;
     }
+
+    return threads[0].id;
   }, [threads, selectedThreadId]);
 
   const selectedThread = useMemo(
     () =>
       threads.find(
         (thread) =>
-          thread.id === selectedThreadId
+          thread.id === effectiveSelectedThreadId
       ) ?? null,
-    [threads, selectedThreadId]
+    [threads, effectiveSelectedThreadId]
   );
 
   if (status === "loading") {
@@ -59,9 +48,7 @@ export default function ConversationsPage({
   }
 
   if (status === "error") {
-    return (
-      <ConversationError onRetry={onRetry} />
-    );
+    return <ConversationError onRetry={onRetry} />;
   }
 
   if (threads.length === 0) {
@@ -91,17 +78,14 @@ export default function ConversationsPage({
           <div className="max-h-[560px] overflow-y-auto p-3">
             {threads.map((thread) => {
               const isSelected =
-                thread.id ===
-                selectedThreadId;
+                thread.id === effectiveSelectedThreadId;
 
               return (
                 <button
                   type="button"
                   key={thread.id}
                   onClick={() =>
-                    setSelectedThreadId(
-                      thread.id
-                    )
+                    setSelectedThreadId(thread.id)
                   }
                   className={`mb-2 w-full rounded-2xl border p-4 text-left transition-all duration-200 last:mb-0 ${
                     isSelected
@@ -120,9 +104,7 @@ export default function ConversationsPage({
                         )}
 
                         <p className="truncate font-bold text-slate-950">
-                          {
-                            thread.customerName
-                          }
+                          {thread.customerName}
                         </p>
                       </div>
 
@@ -132,9 +114,7 @@ export default function ConversationsPage({
                     </div>
 
                     <p className="shrink-0 text-xs font-semibold text-slate-400">
-                      {
-                        thread.lastActivity
-                      }
+                      {thread.lastActivity}
                     </p>
                   </div>
 
@@ -185,7 +165,6 @@ function ConversationThreadView({
 
               <p className="mt-0.5 text-sm text-slate-500">
                 {thread.service}
-
                 {thread.phone
                   ? ` · ${thread.phone}`
                   : ""}
@@ -194,12 +173,8 @@ function ConversationThreadView({
           </div>
 
           <ConversationStatus
-            needsAttention={
-              thread.needsAttention
-            }
-            customerStatus={
-              thread.customerStatus
-            }
+            needsAttention={thread.needsAttention}
+            customerStatus={thread.customerStatus}
           />
         </div>
       </header>
@@ -207,8 +182,7 @@ function ConversationThreadView({
       <div className="flex-1 space-y-5 bg-slate-50 px-5 py-7 md:px-7">
         {thread.messages.map((message) => {
           const isOutbound =
-            message.direction ===
-            "outbound";
+            message.direction === "outbound";
 
           return (
             <div
@@ -245,9 +219,7 @@ function ConversationThreadView({
 
                   <span>·</span>
 
-                  <span>
-                    {message.time}
-                  </span>
+                  <span>{message.time}</span>
 
                   {isOutbound && (
                     <>
@@ -272,10 +244,9 @@ function ConversationThreadView({
           </p>
 
           <p className="mt-2 text-sm leading-relaxed text-blue-900">
-            Live replies and suggested
-            responses will be enabled when
-            messaging is connected. This thread
-            is currently read-only.
+            Live replies and suggested responses will be
+            enabled when messaging is connected. This
+            thread is currently read-only.
           </p>
         </div>
       </footer>
@@ -294,7 +265,6 @@ function ConversationStatus({
     return (
       <span className="inline-flex w-fit items-center gap-2 rounded-full bg-orange-100 px-4 py-2 text-sm font-bold text-orange-800">
         <span className="h-2 w-2 rounded-full bg-orange-500" />
-
         Needs attention
       </span>
     );
@@ -303,7 +273,6 @@ function ConversationStatus({
   return (
     <span className="inline-flex w-fit items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-800">
       <span className="h-2 w-2 rounded-full bg-green-500" />
-
       {customerStatus}
     </span>
   );
@@ -352,14 +321,12 @@ function ConversationError({
         </div>
 
         <h3 className="mt-5 text-2xl font-bold text-slate-950">
-          Conversations could not be
-          loaded.
+          Conversations could not be loaded.
         </h3>
 
         <p className="mt-3 leading-relaxed text-slate-500">
-          EMBUR could not reach the
-          conversation database. Your customer
-          data is safe.
+          EMBUR could not reach the conversation database.
+          Your customer data is safe.
         </p>
 
         <button
@@ -390,9 +357,8 @@ function ConversationEmpty() {
         </h3>
 
         <p className="mt-3 leading-relaxed text-slate-500">
-          New customer conversations will
-          appear here automatically when EMBUR
-          begins responding.
+          New customer conversations will appear here
+          automatically when EMBUR begins responding.
         </p>
       </div>
     </section>

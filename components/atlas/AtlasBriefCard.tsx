@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import type { Lead } from "@/types";
 import type { AtlasBrief } from "@/services/atlas/atlasEngine";
 import {
@@ -13,28 +14,45 @@ type AtlasBriefCardProps = {
   onOpenCustomer: (customer: Lead) => void;
 };
 
+function subscribe() {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 18) {
+    return "Good afternoon";
+  }
+
+  return "Good evening";
+}
+
 export default function AtlasBriefCard({
   brief,
   onOpenCustomer,
 }: AtlasBriefCardProps) {
-  const [greeting, setGreeting] =
-    useState("Welcome back");
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
-  useEffect(() => {
-    const hour = new Date().getHours();
-
-    if (hour < 12) {
-      setGreeting("Good morning");
-      return;
-    }
-
-    if (hour < 18) {
-      setGreeting("Good afternoon");
-      return;
-    }
-
-    setGreeting("Good evening");
-  }, []);
+  const greeting = mounted
+    ? getGreeting()
+    : "Welcome back";
 
   const recommendation = brief.recommendation;
   const customer = recommendation.customer;
@@ -48,9 +66,12 @@ export default function AtlasBriefCard({
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src="/embur-logo.png"
                 alt=""
+                width={44}
+                height={44}
+                priority
                 className="h-11 w-11 rounded-2xl object-contain shadow-lg"
               />
 
@@ -218,7 +239,8 @@ function HealthBadge({
       "border-green-400/20 bg-green-400/10 text-green-300",
     healthy:
       "border-blue-400/20 bg-blue-400/10 text-blue-200",
-    busy: "border-amber-400/20 bg-amber-400/10 text-amber-300",
+    busy:
+      "border-amber-400/20 bg-amber-400/10 text-amber-300",
     attention:
       "border-red-400/20 bg-red-400/10 text-red-300",
   };
@@ -229,6 +251,7 @@ function HealthBadge({
     >
       <span className="relative flex h-3 w-3">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-30" />
+
         <span className="relative inline-flex h-3 w-3 rounded-full bg-current" />
       </span>
 

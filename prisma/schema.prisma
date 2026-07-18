@@ -22,6 +22,8 @@ model Business {
   users                User[]
   customers            Customer[]
   conversations        Conversation[]
+  atlasMemory          AtlasMemory?
+  atlasActions         AtlasAction[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 }
@@ -74,4 +76,39 @@ model Conversation {
 
   @@index([businessId])
   @@index([customerId])
+}
+
+model AtlasMemory {
+  id                     String   @id @default(cuid())
+  businessId             String   @unique
+  business               Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  ownerName              String   @default("Owner")
+  preferredBriefLength   String   @default("short")
+  preferredCommunication String   @default("call")
+  emergencyFirst         Boolean  @default(true)
+  preferredStartHour     Int      @default(8)
+  averageResponseMinutes Int      @default(15)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model AtlasAction {
+  id                String    @id @default(cuid())
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  recommendationId  String
+  customerReference String?
+  title             String
+  description       String
+  actionType        String
+  riskLevel         String
+  estimatedValue    Int       @default(0)
+  status            String    @default("pending")
+  decidedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([businessId, recommendationId])
+  @@index([businessId])
+  @@index([status])
 }

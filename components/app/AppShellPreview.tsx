@@ -24,6 +24,8 @@ import {
   type ConversationThread,
 } from "@/services/conversationApi";
 import { getBusinessMetrics } from "@/services/businessService";
+import { fetchAtlasMemory } from "@/services/atlasMemoryApi";
+import type { AtlasMemory } from "@/lib/intelligence/memory/types";
 
 const fallbackCustomers = getCustomers();
 const businessMetrics = getBusinessMetrics();
@@ -48,33 +50,30 @@ export default function AppShellPreview() {
   ] = useState<Lead | null>(null);
 
   const [customers, setCustomers] =
-    useState<Lead[]>(
-      fallbackCustomers
-    );
+    useState<Lead[]>(fallbackCustomers);
 
   const [
     customerDataStatus,
     setCustomerDataStatus,
   ] =
-    useState<CustomerDataStatus>(
-      "loading"
-    );
+    useState<CustomerDataStatus>("loading");
 
   const [
     conversationThreads,
     setConversationThreads,
   ] =
-    useState<ConversationThread[]>(
-      []
-    );
+    useState<ConversationThread[]>([]);
 
   const [
     conversationDataStatus,
     setConversationDataStatus,
   ] =
-    useState<ConversationDataStatus>(
-      "loading"
-    );
+    useState<ConversationDataStatus>("loading");
+
+  const [
+    atlasMemory,
+    setAtlasMemory,
+  ] = useState<AtlasMemory | null>(null);
 
   const [
     welcomeOpen,
@@ -98,27 +97,14 @@ export default function AppShellPreview() {
           return;
         }
 
-        if (
-          databaseCustomers.length > 0
-        ) {
-          setCustomers(
-            databaseCustomers
-          );
-
-          setCustomerDataStatus(
-            "database"
-          );
-
+        if (databaseCustomers.length > 0) {
+          setCustomers(databaseCustomers);
+          setCustomerDataStatus("database");
           return;
         }
 
-        setCustomers(
-          fallbackCustomers
-        );
-
-        setCustomerDataStatus(
-          "fallback"
-        );
+        setCustomers(fallbackCustomers);
+        setCustomerDataStatus("fallback");
       } catch (error) {
         console.error(
           "Using EMBUR demo customer fallback:",
@@ -129,13 +115,8 @@ export default function AppShellPreview() {
           return;
         }
 
-        setCustomers(
-          fallbackCustomers
-        );
-
-        setCustomerDataStatus(
-          "fallback"
-        );
+        setCustomers(fallbackCustomers);
+        setCustomerDataStatus("fallback");
       }
     }
 
@@ -152,9 +133,7 @@ export default function AppShellPreview() {
           databaseConversations
         );
 
-        setConversationDataStatus(
-          "database"
-        );
+        setConversationDataStatus("database");
       } catch (error) {
         console.error(
           "Could not load EMBUR conversations:",
@@ -166,15 +145,37 @@ export default function AppShellPreview() {
         }
 
         setConversationThreads([]);
+        setConversationDataStatus("error");
+      }
+    }
 
-        setConversationDataStatus(
-          "error"
+    async function loadAtlasMemory() {
+      try {
+        const memory =
+          await fetchAtlasMemory();
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        setAtlasMemory(memory);
+      } catch (error) {
+        console.error(
+          "Using Atlas default memory:",
+          error
         );
+
+        if (!componentIsActive) {
+          return;
+        }
+
+        setAtlasMemory(null);
       }
     }
 
     void loadCustomers();
     void loadInitialConversations();
+    void loadAtlasMemory();
 
     return () => {
       componentIsActive = false;
@@ -182,9 +183,7 @@ export default function AppShellPreview() {
   }, []);
 
   async function retryConversations() {
-    setConversationDataStatus(
-      "loading"
-    );
+    setConversationDataStatus("loading");
 
     try {
       const databaseConversations =
@@ -194,9 +193,7 @@ export default function AppShellPreview() {
         databaseConversations
       );
 
-      setConversationDataStatus(
-        "database"
-      );
+      setConversationDataStatus("database");
     } catch (error) {
       console.error(
         "Could not reload EMBUR conversations:",
@@ -204,10 +201,7 @@ export default function AppShellPreview() {
       );
 
       setConversationThreads([]);
-
-      setConversationDataStatus(
-        "error"
-      );
+      setConversationDataStatus("error");
     }
   }
 
@@ -287,28 +281,20 @@ export default function AppShellPreview() {
             />
 
             <DataSourceNotice
-              status={
-                customerDataStatus
-              }
+              status={customerDataStatus}
             />
 
             {selectedCustomer ? (
               <CustomerDetailPage
-                customer={
-                  selectedCustomer
-                }
-                onBack={
-                  handleCustomerBack
-                }
+                customer={selectedCustomer}
+                onBack={handleCustomerBack}
               />
             ) : (
               <>
-                {activePage ===
-                  "Today" && (
+                {activePage === "Today" && (
                   <TodayPage
-                    customers={
-                      customers
-                    }
+                    customers={customers}
+                    atlasMemory={atlasMemory}
                     onOpenCustomer={
                       handleCustomerSelect
                     }
@@ -318,9 +304,7 @@ export default function AppShellPreview() {
                 {activePage ===
                   "Customers" && (
                   <CustomersPage
-                    customers={
-                      customers
-                    }
+                    customers={customers}
                     onCustomerSelect={
                       handleCustomerSelect
                     }
@@ -342,17 +326,13 @@ export default function AppShellPreview() {
                   />
                 )}
 
-                {activePage ===
-                  "Business" && (
+                {activePage === "Business" && (
                   <BusinessPage
-                    metrics={
-                      businessMetrics
-                    }
+                    metrics={businessMetrics}
                   />
                 )}
 
-                {activePage ===
-                  "Settings" && (
+                {activePage === "Settings" && (
                   <div className="space-y-6">
                     <SettingsPage />
                     <BillingSettingsCard />
@@ -381,8 +361,8 @@ function BillingSettingsCard() {
           </h3>
 
           <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">
-            Review your EMBUR plan, begin a subscription,
-            or manage your company&apos;s billing settings.
+            Review your EMBUR plan or manage your
+            company&apos;s billing settings.
           </p>
         </div>
 
@@ -406,7 +386,6 @@ function DataSourceNotice({
     return (
       <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-400">
         <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-
         Connecting to EMBUR data...
       </div>
     );
@@ -416,7 +395,6 @@ function DataSourceNotice({
     return (
       <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-amber-700">
         <span className="h-2 w-2 rounded-full bg-amber-500" />
-
         Demo fallback data is active.
       </div>
     );
@@ -425,7 +403,6 @@ function DataSourceNotice({
   return (
     <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-green-700">
       <span className="h-2 w-2 rounded-full bg-green-500" />
-
       Connected to the EMBUR database.
     </div>
   );

@@ -40,11 +40,9 @@ export function getRecommendedAction(
 
   if (
     status.includes("waiting") &&
-    (
-      service.includes("emergency") ||
+    (service.includes("emergency") ||
       service.includes("no cooling") ||
-      service.includes("no heat")
-    )
+      service.includes("no heat"))
   ) {
     return `Call ${customer.name} immediately.`;
   }
@@ -67,42 +65,40 @@ export function getRecommendedAction(
 export function createRecommendations(
   customers: Lead[]
 ): AtlasRecommendation[] {
-  return customers
-    .map((customer) => {
-      const intelligence = scoreCustomer(customer);
-      const status = normalize(customer.status);
-      const riskLevel =
-        getCustomerRiskLevel(customer);
+  const rankedRecommendations = customers.map((customer) => {
+    const intelligence = scoreCustomer(customer);
+    const status = normalize(customer.status);
+    const riskLevel = getCustomerRiskLevel(customer);
 
-      let actionType:
-        AtlasRecommendation["actionType"] =
-        "review";
+    let actionType: AtlasRecommendation["actionType"] =
+      "review";
 
-      if (status.includes("waiting")) {
-        actionType = "call";
-      } else if (status.includes("follow")) {
-        actionType = "follow_up";
-      } else if (status.includes("booked")) {
-        actionType = "confirm";
-      }
+    if (status.includes("waiting")) {
+      actionType = "call";
+    } else if (status.includes("follow")) {
+      actionType = "follow_up";
+    } else if (status.includes("booked")) {
+      actionType = "confirm";
+    }
 
-      return {
-        id: `atlas-action-${customer.id}`,
-        customerId: customer.id,
-        title: getRecommendedAction(customer),
-        description:
-          intelligence.reason.join(". "),
-        actionType,
-        riskLevel,
-        estimatedValue: parseLeadValue(
-          customer.value
-        ),
-        score: intelligence.score,
-      };
-    })
-    .sort((a, b) => b.score - a.score)
-    .map(({ score: _score, ...recommendation }) =>
-      recommendation
-    )
-    .slice(0, 3);
+    const recommendation: AtlasRecommendation = {
+      id: `atlas-action-${customer.id}`,
+      customerId: customer.id,
+      title: getRecommendedAction(customer),
+      description: intelligence.reason.join(". "),
+      actionType,
+      riskLevel,
+      estimatedValue: parseLeadValue(customer.value),
+    };
+
+    return {
+      recommendation,
+      score: intelligence.score,
+    };
+  });
+
+  return rankedRecommendations
+    .sort((first, second) => second.score - first.score)
+    .slice(0, 3)
+    .map(({ recommendation }) => recommendation);
 }

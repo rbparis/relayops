@@ -8,6 +8,7 @@ import type {
   AtlasMetrics,
   AtlasSnapshot,
 } from "../types";
+import type { AtlasMemory } from "../memory/types";
 
 function buildMetrics(
   customers: Lead[]
@@ -39,7 +40,8 @@ function buildMetrics(
 }
 
 export function buildAtlasSnapshot(
-  customers: Lead[]
+  customers: Lead[],
+  memory?: AtlasMemory | null
 ): AtlasSnapshot {
   if (customers.length === 0) {
     throw new Error(
@@ -54,9 +56,14 @@ export function buildAtlasSnapshot(
     businessHealth: health.score,
     businessHealthSummary: health.summary,
     revenueAtRisk: revenue.revenueAtRisk,
-    topPriority: buildPriority(customers),
-    recommendations:
-      buildRecommendations(customers),
+    topPriority: buildPriority(
+      customers,
+      memory
+    ),
+    recommendations: buildRecommendations(
+      customers,
+      memory
+    ),
     forecast: buildForecast(customers),
     metrics: buildMetrics(customers),
   };

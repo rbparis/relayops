@@ -1,12 +1,18 @@
 import type { Lead } from "@/types";
+import AskAtlasPanel from "@/components/atlas/AskAtlasPanel";
+import AtlasActionQueue from "@/components/atlas/AtlasActionQueue";
+import AtlasAiExecutiveBrief from "@/components/atlas/AtlasAiExecutiveBrief";
 import AtlasForecastGrid from "@/components/atlas/AtlasForecastGrid";
 import AtlasHealthCard from "@/components/atlas/AtlasHealthCard";
 import AtlasPriorityCard from "@/components/atlas/AtlasPriorityCard";
 import AtlasRecommendations from "@/components/atlas/AtlasRecommendations";
+import AtlasTimeline from "@/components/atlas/AtlasTimeline";
 import { createAtlasSnapshot } from "@/lib/intelligence/atlasEngine";
+import type { AtlasMemory } from "@/lib/intelligence/memory/types";
 
 interface TodayPageProps {
   customers: Lead[];
+  atlasMemory?: AtlasMemory | null;
   onOpenCustomer(customer: Lead): void;
 }
 
@@ -26,6 +32,7 @@ function formatCustomerValue(
 
 export default function TodayPage({
   customers,
+  atlasMemory,
   onOpenCustomer,
 }: TodayPageProps) {
   if (customers.length === 0) {
@@ -40,20 +47,36 @@ export default function TodayPage({
         </h2>
 
         <p className="mx-auto mt-4 max-w-xl leading-relaxed text-slate-600">
-          Customer intelligence will appear here as
-          EMBUR begins receiving activity.
+          Customer intelligence will appear
+          here as EMBUR begins receiving
+          activity.
         </p>
       </section>
     );
   }
 
-  const atlas = createAtlasSnapshot(customers);
+  const atlas = createAtlasSnapshot(
+    customers,
+    atlasMemory
+  );
 
   return (
     <div className="space-y-8">
+      <AtlasAiExecutiveBrief
+        snapshot={atlas}
+        memory={atlasMemory}
+      />
+
+      <AskAtlasPanel
+        snapshot={atlas}
+        memory={atlasMemory}
+      />
+
       <div className="grid gap-6 xl:grid-cols-[1.7fr_0.8fr]">
         <AtlasPriorityCard
-          customer={atlas.topPriority.customer}
+          customer={
+            atlas.topPriority.customer
+          }
           score={atlas.topPriority.score}
           confidence={
             atlas.topPriority.confidence
@@ -62,13 +85,19 @@ export default function TodayPage({
             atlas.topPriority.riskLevel
           }
           estimatedValue={
-            atlas.topPriority.estimatedValue
+            atlas.topPriority
+              .estimatedValue
           }
-          reason={atlas.topPriority.reason}
+          reason={
+            atlas.topPriority.reason
+          }
           recommendedAction={
-            atlas.topPriority.recommendedAction
+            atlas.topPriority
+              .recommendedAction
           }
-          onOpenCustomer={onOpenCustomer}
+          onOpenCustomer={
+            onOpenCustomer
+          }
         />
 
         <AtlasHealthCard
@@ -85,9 +114,12 @@ export default function TodayPage({
           atlas.forecast.expectedRevenue
         }
         expectedAppointments={
-          atlas.forecast.expectedAppointments
+          atlas.forecast
+            .expectedAppointments
         }
-        revenueAtRisk={atlas.revenueAtRisk}
+        revenueAtRisk={
+          atlas.revenueAtRisk
+        }
       />
 
       <AtlasRecommendations
@@ -95,6 +127,14 @@ export default function TodayPage({
           atlas.recommendations
         }
       />
+
+      <AtlasActionQueue
+        recommendations={
+          atlas.recommendations
+        }
+      />
+
+      <AtlasTimeline />
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">

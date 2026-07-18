@@ -27,6 +27,28 @@ const defaultSettings: BusinessSettings = {
 
 const storageKey = "embur-business-settings";
 
+function readStoredSettings(): BusinessSettings {
+  try {
+    const storedSettings = window.localStorage.getItem(storageKey);
+
+    if (!storedSettings) {
+      return defaultSettings;
+    }
+
+    const parsedSettings = JSON.parse(
+      storedSettings
+    ) as Partial<BusinessSettings>;
+
+    return {
+      ...defaultSettings,
+      ...parsedSettings,
+    };
+  } catch (error) {
+    console.error("Could not load EMBUR settings:", error);
+    return defaultSettings;
+  }
+}
+
 export default function SettingsScreen() {
   const [settings, setSettings] =
     useState<BusinessSettings>(defaultSettings);
@@ -38,27 +60,17 @@ export default function SettingsScreen() {
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    try {
-      const storedSettings = window.localStorage.getItem(storageKey);
+    const loadTimer = window.setTimeout(() => {
+      const storedSettings = readStoredSettings();
 
-      if (storedSettings) {
-        const parsedSettings = JSON.parse(
-          storedSettings
-        ) as Partial<BusinessSettings>;
-
-        const mergedSettings = {
-          ...defaultSettings,
-          ...parsedSettings,
-        };
-
-        setSettings(mergedSettings);
-        setSavedSettings(mergedSettings);
-      }
-    } catch (error) {
-      console.error("Could not load EMBUR settings:", error);
-    } finally {
+      setSettings(storedSettings);
+      setSavedSettings(storedSettings);
       setIsLoaded(true);
-    }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
   }, []);
 
   const hasChanges =

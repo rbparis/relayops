@@ -8,9 +8,23 @@ import {
   getRecommendedAction,
 } from "../recommendationEngine";
 import type { AtlasPriority } from "../types";
+import type { AtlasMemory } from "../memory/types";
+import { normalizeAtlasMemory } from "../memory/memoryEngine";
+
+function isEmergency(customer: Lead): boolean {
+  const service =
+    customer.service?.toLowerCase() ?? "";
+
+  return (
+    service.includes("emergency") ||
+    service.includes("no cooling") ||
+    service.includes("no heat")
+  );
+}
 
 export function buildPriority(
-  customers: Lead[]
+  customers: Lead[],
+  memory?: AtlasMemory | null
 ): AtlasPriority {
   if (customers.length === 0) {
     throw new Error(
@@ -18,15 +32,33 @@ export function buildPriority(
     );
   }
 
+  const atlasMemory =
+    normalizeAtlasMemory(memory);
+
   const rankedCustomers = customers
-    .map((customer) => ({
-      customer,
-      intelligence: scoreCustomer(customer),
-    }))
+    .map((customer) => {
+      const intelligence =
+        scoreCustomer(customer);
+
+      const memoryBoost =
+        atlasMemory.emergencyFirst &&
+        isEmergency(customer)
+          ? 10
+          : 0;
+
+      return {
+        customer,
+        intelligence,
+        adjustedScore: Math.min(
+          100,
+          intelligence.score + memoryBoost
+        ),
+      };
+    })
     .sort(
       (first, second) =>
-        second.intelligence.score -
-        first.intelligence.score
+        second.adjustedScore -
+        first.adjustedScore
     );
 
   const topPriority = rankedCustomers[0];
@@ -35,13 +67,13 @@ export function buildPriority(
     99,
     Math.max(
       50,
-      topPriority.intelligence.score + 12
+      topPriority.adjustedScore + 12
     )
   );
 
   return {
     customer: topPriority.customer,
-    score: topPriority.intelligence.score,
+    score: topPriority.adjustedScore,
     confidence,
     riskLevel: getCustomerRiskLevel(
       topPriority.customer

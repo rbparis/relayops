@@ -1,17 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   OrganizationSwitcher,
   UserButton,
 } from "@clerk/nextjs";
 
-export default function WorkspaceAccountControls() {
-  const [mounted, setMounted] = useState(false);
+function subscribe() {
+  return () => {};
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+export default function WorkspaceAccountControls() {
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
   if (!mounted) {
     return (
