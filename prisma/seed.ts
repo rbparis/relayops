@@ -1,12 +1,17 @@
 import "dotenv/config";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../generated/prisma/client";
 
-const databaseUrl =
-  process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+const connectionString = process.env.DATABASE_URL;
 
-const adapter = new PrismaBetterSqlite3({
-  url: databaseUrl,
+if (!connectionString) {
+  throw new Error(
+    "DATABASE_URL is required. Add your Neon PostgreSQL connection string to .env."
+  );
+}
+
+const adapter = new PrismaNeon({
+  connectionString,
 });
 
 const prisma = new PrismaClient({
@@ -16,56 +21,51 @@ const prisma = new PrismaClient({
 const demoBusinessId = "business-embur-demo";
 
 async function main() {
-  /*
-   * Remove only EMBUR's demo company.
-   * Cascading relations remove its existing demo users,
-   * customers, and conversations before rebuilding them.
-   */
-await prisma.conversation.deleteMany({
-  where: {
-    id: {
-      in: [
-        "conversation-mike-inbound",
-        "conversation-mike-outbound",
-        "conversation-sarah-inbound",
-        "conversation-sarah-outbound",
-        "conversation-john-inbound",
-        "conversation-john-outbound",
+  await prisma.conversation.deleteMany({
+    where: {
+      id: {
+        in: [
+          "conversation-mike-inbound",
+          "conversation-mike-outbound",
+          "conversation-sarah-inbound",
+          "conversation-sarah-outbound",
+          "conversation-john-inbound",
+          "conversation-john-outbound",
+        ],
+      },
+    },
+  });
+
+  await prisma.customer.deleteMany({
+    where: {
+      id: {
+        in: [
+          "customer-mike-brown",
+          "customer-sarah-johnson",
+          "customer-john-smith",
+        ],
+      },
+    },
+  });
+
+  await prisma.user.deleteMany({
+    where: {
+      OR: [
+        {
+          id: "user-mike-owner",
+        },
+        {
+          email: "mike@demo.embur.app",
+        },
       ],
     },
-  },
-});
+  });
 
-await prisma.customer.deleteMany({
-  where: {
-    id: {
-      in: [
-        "customer-mike-brown",
-        "customer-sarah-johnson",
-        "customer-john-smith",
-      ],
+  await prisma.business.deleteMany({
+    where: {
+      id: demoBusinessId,
     },
-  },
-});
-
-await prisma.user.deleteMany({
-  where: {
-    OR: [
-      {
-        id: "user-mike-owner",
-      },
-      {
-        email: "mike@demo.embur.app",
-      },
-    ],
-  },
-});
-
-await prisma.business.deleteMany({
-  where: {
-    id: demoBusinessId,
-  },
-});
+  });
 
   await prisma.business.create({
     data: {
@@ -203,8 +203,7 @@ await prisma.business.deleteMany({
   }
 
   const conversationCount = business.customers.reduce(
-    (total, customer) =>
-      total + customer.conversations.length,
+    (total, customer) => total + customer.conversations.length,
     0
   );
 
